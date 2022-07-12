@@ -1,0 +1,4 @@
+patientlist: "metadata/samples.csv"
+
+#sitka params
+nscans: 1000

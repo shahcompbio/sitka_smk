@@ -1,0 +1,8 @@
+logs/
+.Rproj.user
+*.ipynb_checkpoints/
+.snakemake/
+results/
+rawdata/
+results*
+data/
