@@ -1,4 +1,3 @@
-
 def _get_hscnpath(wildcards):
     df_filt = df[df["patient"] == wildcards.sample]
     path = df_filt["path"].to_list()[0]
@@ -8,9 +7,9 @@ rule hmmcopy_to_sitka_tree:
     input:
         hscn = _get_hscnpath,
     output:
-        sitka_input = "results/{sample}/inputdata/{sample}_sitka.csv",
-        sitka_segs = "results/{sample}/inputdata/{sample}_sitka_segs.csv.gz",
-        sitka_transitions = "results/{sample}/inputdata/{sample}_sitka_transitions.csv.gz",
+        sitka_input = "results/input/{sample}_sitka.csv",
+        sitka_segs = "results/input/{sample}_sitka_segs.csv.gz",
+        sitka_transitions = "results/input/{sample}_sitka_transitions.csv.gz",
     singularity: "docker://marcjwilliams1/signals:v0.7.6"
     threads: 15
     resources:
@@ -20,12 +19,12 @@ rule hmmcopy_to_sitka_tree:
 
 rule sitka_tree_inference:
     input:
-        "results/{sample}/inputdata/{sample}_sitka.csv",
+        "results/input/{sample}_sitka.csv",
     output:
-        posterior='results/{sample}/results/{sample}-phylo.csv',
-        fnr='results/{sample}/results/{sample}-fnr.csv',
-        fpr='results/{sample}/results/{sample}-fpr.csv',
-        logdensity='results/{sample}/results/{sample}-sitka_tree_output/logDensity.csv'
+        posterior='results/output/{sample}-phylo.csv',
+        fnr='results/output/{sample}-fnr.csv',
+        fpr='results/output/{sample}-fpr.csv',
+        logdensity='results/output/{sample}-sitka_tree_output/logDensity.csv'
     threads: 25
     resources:
         mem_mb=1024*2
@@ -34,7 +33,7 @@ rule sitka_tree_inference:
     params:
         nscans = config["nscans"],
         fpr = config["fpr"],
-        fnr = config["dnr"]
+        fnr = config["fnr"]
     shell:
         '''
         corrupt-infer-with-noisy-params \
@@ -45,7 +44,7 @@ rule sitka_tree_inference:
             --model.globalParameterization true \
             --model.binaryMatrix {input} \
             --model.fprBound {params.fpr} \
-            --model.fnrBound {parans.fnr} \
+            --model.fnrBound {params.fnr} \
             --engine PT \
             --engine.initialization FORWARD \
             --engine.ladder Polynomial \
@@ -62,9 +61,9 @@ rule sitka_tree_inference:
 
 rule sitka_tree_consensus:
     input:
-        'results/{sample}/results/{sample}-phylo.csv',
+        'results/output/{sample}-phylo.csv',
     output:
-        'results/{sample}/results/{sample}-consensus.newick'
+        'results/output/{sample}-consensus.newick'
     shadow: 'shallow'
     singularity: 'shub://funnell/nowellpack_singularity'
     resources:
@@ -82,9 +81,9 @@ rule sitka_tree_consensus:
 
 rule sitka_tree_average_tip_indicators:
     input:
-        'results/{sample}/results/{sample}-phylo.csv'
+        'results/output/{sample}-phylo.csv'
     output:
-        'results/{sample}/results/{sample}-average.csv'
+        'results/output/{sample}-average.csv'
     shadow: 'shallow'
     singularity: 'shub://funnell/nowellpack_singularity'
     resources:
@@ -103,9 +102,9 @@ rule sitka_tree_average_tip_indicators:
 
 rule sitka_tree_decode:
     input:
-        'results/{sample}/results/{sample}-average.csv'
+        'results/output/{sample}-average.csv'
     output:
-        'results/{sample}/results/{sample}-tree.newick'
+        'results/output/{sample}-tree.newick'
     shadow: 'shallow'
     singularity: 'shub://funnell/nowellpack_singularity'
     resources:
@@ -123,9 +122,9 @@ rule sitka_tree_decode:
 
 rule formatsitka:
     input:
-        tree = 'results/{sample}/results/{sample}-tree.newick',
+        tree = 'results/output/{sample}-tree.newick',
     output:
-        tree = 'results/{sample}/results/{sample}-tree-processed.newick'
+        tree = 'results/output/{sample}-tree-processed.newick'
     threads: 1
     resources:
         mem_mb=1024 * 10
@@ -134,11 +133,10 @@ rule formatsitka:
 
 rule plotsitka:
     input:
-        tree = 'results/{sample}/results/{sample}-tree-processed.newick',
+        tree = 'results/output/{sample}-tree-processed.newick',
         hscn = _get_hscnpath
     output:
-        plot = report("results/plots/{sample}-heatmap.pdf", category = "sitka"),
-        plotpng = "results/plots/{sample}-heatmap.png"
+        plotpng = "results/output/{sample}-heatmap.png"
     threads: 1
     resources:
         mem_mb=1024 * 50
