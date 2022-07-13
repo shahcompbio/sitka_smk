@@ -6,17 +6,17 @@ def _get_hscnpath(wildcards):
 
 rule hmmcopy_to_sitka_tree:
     input:
-        cn_df = _get_hscnpath,
+        hscn = _get_hscnpath,
     output:
         sitka_input = "results/{sample}/inputdata/{sample}_sitka.csv",
         sitka_segs = "results/{sample}/inputdata/{sample}_sitka_segs.csv.gz",
         sitka_transitions = "results/{sample}/inputdata/{sample}_sitka_transitions.csv.gz",
-    singularity: "docker://marcjwilliam1/signals:v0.7.6"
+    singularity: "docker://marcjwilliams1/signals:v0.7.6"
     threads: 15
     resources:
         mem_mb=1024*10
     script:
-        "../scripts/phylo/cnbins_to_sitka.R"
+        "../scripts/cnbins_to_sitka.R"
 
 rule sitka_tree_inference:
     input:
@@ -26,7 +26,7 @@ rule sitka_tree_inference:
         fnr='results/{sample}/results/{sample}-fnr.csv',
         fpr='results/{sample}/results/{sample}-fpr.csv',
         logdensity='results/{sample}/results/{sample}-sitka_tree_output/logDensity.csv'
-    threads: 10
+    threads: 25
     resources:
         mem_mb=1024*2
     shadow: 'shallow'
@@ -35,7 +35,7 @@ rule sitka_tree_inference:
         nscans = config["nscans"],
     shell:
         '''
-        sitka-infer-with-noisy-params \
+        corrupt-infer-with-noisy-params \
             -Xmx200G \
             --experimentConfigs.saveStandardStreams false \
             --experimentConfigs.recordGitInfo false \
@@ -69,7 +69,7 @@ rule sitka_tree_consensus:
         mem_mb=1024*50
     shell:
         '''
-        sitka-l1-decode \
+        corrupt-l1-decode \
             -Xmx30G \
             --experimentConfigs.saveStandardStreams false \
             --experimentConfigs.recordGitInfo false \
@@ -89,7 +89,7 @@ rule sitka_tree_average_tip_indicators:
         mem_mb=1024*50
     shell:
         '''
-        sitka-average \
+        corrupt-average \
             -Xmx30G \
             --experimentConfigs.saveStandardStreams false \
             --experimentConfigs.recordGitInfo false \
@@ -110,7 +110,7 @@ rule sitka_tree_decode:
         mem_mb=1024*50
     shell:
         '''
-        sitka-greedy \
+        corrupt-greedy \
             -Xmx30G \
             --experimentConfigs.saveStandardStreams false \
             --experimentConfigs.recordGitInfo false \
@@ -127,8 +127,8 @@ rule formatsitka:
     threads: 1
     resources:
         mem_mb=1024 * 10
-    singularity: "docker://marcjwilliam1/signals:v0.7.6"
-    script: "../scripts/phylo/processtree.R"
+    singularity: "docker://marcjwilliams1/signals:v0.7.6"
+    script: "../scripts/processtree.R"
 
 rule plotsitka:
     input:
@@ -140,5 +140,5 @@ rule plotsitka:
     threads: 1
     resources:
         mem_mb=1024 * 50
-    singularity: "docker://marcjwilliam1/signals:v0.7.6"
-    script: "../scripts/phylo/plotheatmap.R"
+    singularity: "docker://marcjwilliams1/signals:v0.7.6"
+    script: "../scripts/plotheatmap.R"
