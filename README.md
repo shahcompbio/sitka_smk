@@ -13,3 +13,5 @@ Required input is the per bin per cell copy number tables produced by signals. T
 3. `sitka_tree_consensus`, `sitka_tree_average_tip_indicators` & `sitka_tree_decode` These rules compute the consensus tree
 4. `formatsitka` This rule removes tips that are loci and not cells, removes the "cell_" string from the tips and attempts to remove the "finger" clades, long chains of that likely represent early or late replicating cells. This is done by trying to identify clades that consist of a high fraction of singletons - nodes with only one descendent. To do this nodes are ordered by their fraction of singletons and then nodes are progressively removed until 3% of cells are filtered out. This can be adjusted with the `frac_cells` parameter in `remove_fingers` function in `scripts/utils.R`.
 5. `plotsitka` plots the tree + heatmaps.
+
+![This is an image](metadata/OV-044-heatmap.png)
