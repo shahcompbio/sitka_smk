@@ -213,6 +213,18 @@ create_edge_table <- function(my_tree){
   )
 }
 
+mygetDescendants<-function(tree,node,curr=NULL){
+  if(!inherits(tree,"phylo")) stop("tree should be an object of class \"phylo\".")
+  if(is.null(curr)) curr<-vector()
+  daughters<-tree$edge[which(tree$edge[,1]==node),2]
+  curr<-c(curr,daughters)
+  if(length(curr)==0&&node<=Ntip(tree)) curr<-node
+  w<-which(daughters>Ntip(tree))
+  if(length(w)>0) for(i in 1:length(w)) 
+    curr<-mygetDescendants(tree,daughters[w[i]],curr)
+  return(curr)
+}
+
 add_desc_singletons <- function(et, tree){
   
   et <- left_join(et, data.frame(parent = 1:max(et$parent), nchild = tabulate(et$parent)), by = "parent")
@@ -225,7 +237,7 @@ add_desc_singletons <- function(et, tree){
   n_desc <- c()
   n_singletons <- c()
   for (i in 1:nrow(et)){
-    desc <- et %>% filter(child %in% phytools::getDescendants(tree, et$parent[i]))
+    desc <- et %>% filter(child %in% mygetDescendants(tree, et$parent[i]))
     
     n_desc <-  c(n_desc, desc %>% 
                    filter(!str_detect(chi.name, "locus")) %>% nrow())
@@ -262,7 +274,7 @@ get_cells_to_remove <- function(et, tree, ratio = NULL, frac_cells = 0.03){
     ni <- 0
     while (ni < n_remove_cells){
       nodes_to_remove <- filter(et, descendents_to_singletons > vals[i]) %>% pull(parent)
-      descendents_to_remove <- unique(unlist(lapply(nodes_to_remove, function(x) phytools::getDescendants(tree, x))))
+      descendents_to_remove <- unique(unlist(lapply(nodes_to_remove, function(x) mygetDescendants(tree, x))))
       cells_to_remove <- et %>% filter(child %in% descendents_to_remove) %>% pull(chi.name)
       cells_to_remove <- cells_to_remove[!str_detect(cells_to_remove, "locus")] 
       i <- i + 1
@@ -270,7 +282,7 @@ get_cells_to_remove <- function(et, tree, ratio = NULL, frac_cells = 0.03){
     }
   } else {
     nodes_to_remove <- filter(et, descendents_to_singletons > ratio) %>% pull(parent)
-    descendents_to_remove <- unique(unlist(lapply(nodes_to_remove, function(x) phytools::getDescendants(tree, x))))
+    descendents_to_remove <- unique(unlist(lapply(nodes_to_remove, function(x) mygetDescendants(tree, x))))
     cells_to_remove <- et %>% filter(child %in% descendents_to_remove) %>% pull(chi.name)
     cells_to_remove <- cells_to_remove[!str_detect(cells_to_remove, "locus")] 
   }

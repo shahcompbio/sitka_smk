@@ -16,7 +16,7 @@ hscnnew <- hscn[chr != "Y"]
 message("Create segments")
 options("scipen"=20)
 
-cn_jitter <- jitter_fix_breakpoints(hscnnew, nextend = 2) %>%
+cn_jitter <- jitter_fix_breakpoints(hscnnew, nextend = snakemake@config$window) %>%
   as.data.table() %>% 
   .[, loci := paste(chr, end - 0.5e6 + 1, end, sep = "_")] %>% 
   .[, row_num := .I] %>% # add row numbers
@@ -48,11 +48,11 @@ message(paste0("Number of cells: ", length(unique(cn_transitions$cells))))
 
 freq_segs <- table(cn_transitions$loci)
 freq_segs <- freq_segs / ncells_original
-freq_segs <- freq_segs[freq_segs > 0.001]
+freq_segs <- freq_segs[freq_segs > snakemake@config$frac_loci]
 cn_transitions <- cn_transitions[loci %in% names(freq_segs)]
 
 message(paste0("Number of transitions: ", dim(cn_transitions)[1]))
-message(paste0("Number of unique transitions (removing f < 0.005): ", length(unique(cn_transitions$loci))))
+message(paste0("Number of unique transitions (removing f < 0.001): ", length(unique(cn_transitions$loci))))
 message(paste0("Number of cells: ", length(unique(cn_transitions$cells))))
 
 

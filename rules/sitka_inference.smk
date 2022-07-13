@@ -33,6 +33,8 @@ rule sitka_tree_inference:
     singularity: 'shub://funnell/nowellpack_singularity'
     params:
         nscans = config["nscans"],
+        fpr = config["fpr"],
+        fnr = config["dnr"]
     shell:
         '''
         corrupt-infer-with-noisy-params \
@@ -42,8 +44,8 @@ rule sitka_tree_inference:
             --experimentConfigs.managedExecutionFolder false \
             --model.globalParameterization true \
             --model.binaryMatrix {input} \
-            --model.fprBound 0.1 \
-            --model.fnrBound 0.5 \
+            --model.fprBound {params.fpr} \
+            --model.fnrBound {parans.fnr} \
             --engine PT \
             --engine.initialization FORWARD \
             --engine.ladder Polynomial \
@@ -123,7 +125,7 @@ rule formatsitka:
     input:
         tree = 'results/{sample}/results/{sample}-tree.newick',
     output:
-        tree = 'results/processed/{sample}-tree.newick'
+        tree = 'results/{sample}/results/{sample}-tree-processed.newick'
     threads: 1
     resources:
         mem_mb=1024 * 10
@@ -132,7 +134,7 @@ rule formatsitka:
 
 rule plotsitka:
     input:
-        tree = 'results/processed/{sample}-tree.newick',
+        tree = 'results/{sample}/results/{sample}-tree-processed.newick',
         hscn = _get_hscnpath
     output:
         plot = report("results/plots/{sample}-heatmap.pdf", category = "sitka"),

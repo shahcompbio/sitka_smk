@@ -1,4 +1,13 @@
 patientlist: "metadata/samples.csv"
 
-#sitka params
-nscans: 1000
+#sitka process parameters
+frac_loci: 0.001 #loci present < frac_loci cells with be filtered out
+window: 2 #window to use for jitter fixing
+
+#sitka post process parameters
+frac_cells: 0.03
+
+#sitka inference parameters
+nscans: 3000
+fnr: 0.5
+fpr: 0.1

@@ -15,7 +15,6 @@ while (length(tip.loci) > 0) {
   tip.loci <- grep('locus', tree$tip.label, value = T)
 }
 tree$tip.label <- str_remove(tree$tip.label, "cell_")
-#tree <- ape::compute.brlen(tree, 1)
 
-tree <- remove_fingers(tree)
+tree <- remove_fingers(tree,  frac_cells = snakemake@config$frac_cells)
 ape::write.tree(tree, file = snakemake@output$tree)
