@@ -62,11 +62,6 @@ h2chr <- plotHeatmap(cn,
 ncells <- length(unique(cn$cell_id))
 mytitle <- paste0(snakemake@wildcards$sample, " (", ncells, " cells)")
 
-message("Saving pdf")
-pdf(snakemake@output$plot, width = 17)
-ComplexHeatmap::draw(h1chr + h2chr, ht_gap = unit(0.6, "cm"), heatmap_legend_side = "bottom", annotation_legend_side = "bottom", column_title = mytitle, column_title_gp = grid::gpar(fontsize = 10))
-dev.off()
-
 message("Saving png")
 png(snakemake@output$plotpng, width = 1152)
 ComplexHeatmap::draw(h1chr + h2chr, ht_gap = unit(0.6, "cm"), heatmap_legend_side = "bottom", annotation_legend_side = "bottom", column_title = mytitle, column_title_gp = grid::gpar(fontsize = 10))
