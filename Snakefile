@@ -1,7 +1,7 @@
 import pandas as pd
 configfile: "config.yaml"
 df = pd.read_csv(config["samplesheet"])
-intypes = ["tcn", "ascn"]#,  "tcnpadded"]
+intypes = ["tcn", "ascn",  "tcnchrom"]
 
 rule all:
     input: 

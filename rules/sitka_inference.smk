@@ -21,9 +21,9 @@ rule hmmcopy_to_sitka_tree_ascn:
     input:
         hscn = _get_hscnpath,
     output:
-        sitka_input = "results/input/{sample}-tcn_sitka.csv",
-        sitka_segs = "results/input/{sample}-tcn_sitka_segs.csv.gz",
-        sitka_transitions = "results/input/{sample}-tcn_sitka_transitions.csv.gz",
+        sitka_input = "results/input/{sample}-ascn_sitka.csv",
+        sitka_segs = "results/input/{sample}-ascn_sitka_segs.csv.gz",
+        sitka_transitions = "results/input/{sample}-ascn_sitka_transitions.csv.gz",
     singularity: "docker://marcjwilliams1/signals:v0.7.6"
     threads: 15
     resources:
@@ -35,9 +35,9 @@ rule hmmcopy_to_sitka_tree_tcnchrom:
     input:
         hscn = _get_hscnpath,
     output:
-        sitka_input = "results/input/{sample}-tcn_sitka.csv",
-        sitka_segs = "results/input/{sample}-tcn_sitka_segs.csv.gz",
-        sitka_transitions = "results/input/{sample}-tcn_sitka_transitions.csv.gz",
+        sitka_input = "results/input/{sample}-tcnchrom_sitka.csv",
+        sitka_segs = "results/input/{sample}-tcnchrom_sitka_segs.csv.gz",
+        sitka_transitions = "results/input/{sample}-tcnchrom_sitka_transitions.csv.gz",
     singularity: "docker://marcjwilliams1/signals:v0.7.6"
     threads: 15
     resources:
