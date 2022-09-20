@@ -76,7 +76,7 @@ hscn_chr <- hscnnew %>%
   pivot_longer(c(gain, loss))
 
 chr_loci <- hscn_chr %>% 
-  mutate(loci = paste(chr, end - 0.5e6 + 1, end, value, sep = "_")) %>% 
+  mutate(loci = paste(paste0(chr, name), end - 0.5e6 + 1, end, sep = "_")) %>% 
   rename(tipInclusionProbabilities = value, cells = cell_id) %>% 
   select(cells, loci, tipInclusionProbabilities)
 

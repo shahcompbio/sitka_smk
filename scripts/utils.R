@@ -1,3 +1,16 @@
+format_tree <- function(tree, removeloci = TRUE){
+  if (removeloci){
+    #tree <- removeleafloci(tree)
+    tip.loci <- grep('locus', tree$tip.label, value = T)
+    while (length(tip.loci) > 0) {
+      tree <- ape::drop.tip(tree, tip.loci, trim.internal = FALSE, collapse.singles = FALSE)
+      tip.loci <- grep('locus', tree$tip.label, value = T)
+    }
+  }
+  tree$tip.label <- str_remove(tree$tip.label, "cell_")
+  return(tree)
+}
+
 fixjitter <- function(bps, nextend = 2){
   x <- as.data.frame(colSums(bps))
   names(x) <- "frequency"
@@ -213,6 +226,7 @@ create_edge_table <- function(my_tree){
   )
 }
 
+#copied from phytools
 mygetDescendants<-function(tree,node,curr=NULL){
   if(!inherits(tree,"phylo")) stop("tree should be an object of class \"phylo\".")
   if(is.null(curr)) curr<-vector()
@@ -255,8 +269,7 @@ add_desc_singletons <- function(et, tree){
   return(et)
 }
 
-
-get_cells_to_remove <- function(et, tree, ratio = NULL, frac_cells = 0.03){
+get_cells_to_remove <- function(et, tree, ratio = NULL, andratio = 3, frac_cells = 0.03){
   
   if (max(et$descendents_to_singletons) < 0.2){
     return(c())
@@ -272,13 +285,16 @@ get_cells_to_remove <- function(et, tree, ratio = NULL, frac_cells = 0.03){
     vals <- rev(sort(et$descendents_to_singletons))
     i <- 1
     ni <- 0
-    while (ni < n_remove_cells){
+    rat <- andratio + 1
+    while ((ni < n_remove_cells) | (rat > andratio)){
       nodes_to_remove <- filter(et, descendents_to_singletons > vals[i]) %>% pull(parent)
       descendents_to_remove <- unique(unlist(lapply(nodes_to_remove, function(x) mygetDescendants(tree, x))))
       cells_to_remove <- et %>% filter(child %in% descendents_to_remove) %>% pull(chi.name)
       cells_to_remove <- cells_to_remove[!str_detect(cells_to_remove, "locus")] 
+      rat <- vals[i]
       i <- i + 1
       ni <- length(cells_to_remove)
+      #print(c(ni, rat))
     }
   } else {
     nodes_to_remove <- filter(et, descendents_to_singletons > ratio) %>% pull(parent)
@@ -293,6 +309,9 @@ get_cells_to_remove <- function(et, tree, ratio = NULL, frac_cells = 0.03){
 remove_fingers <- function(tree, ratio = NULL, frac_cells = 0.03){
   et <- tree %>% create_edge_table(.)
   et <- add_desc_singletons(et, tree)
+  et <- et %>% 
+    arrange(desc(descendents_to_singletons)) %>% 
+    mutate(descendents_cum = cumsum(descendents))
   
   cells_to_remove <- get_cells_to_remove(et, tree, ratio = ratio, frac_cells = frac_cells)
   
@@ -302,6 +321,6 @@ remove_fingers <- function(tree, ratio = NULL, frac_cells = 0.03){
   
   message(paste0("Removing ", length(cells_to_remove), " (", round(length(cells_to_remove) / Ntip(tree), 3) * 100, "%) cells"))
   
-  tree <- ape::drop.tip(tree, cells_to_remove)
+  tree <- ape::drop.tip(tree, cells_to_remove, trim.internal = FALSE, collapse.singles = FALSE) %>% format_tree(.)
   return(tree) 
 }

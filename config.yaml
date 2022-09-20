@@ -1,4 +1,4 @@
-samplesheet: "samples.csv"
+samplesheet: "metadata/samples.csv"
 
 #sitka process parameters
 frac_loci: 0.001 #loci present < frac_loci cells with be filtered out

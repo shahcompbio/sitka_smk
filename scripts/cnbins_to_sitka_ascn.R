@@ -19,14 +19,14 @@ options("scipen"=20)
 cn_jitterA <- jitter_fix_breakpoints(hscnnew %>% dplyr::rename(state = Maj), #hack rename Maj to state
                                      nextend = snakemake@config$window) %>%
   as.data.table() %>% 
-  .[, loci := paste(chr, end - 0.5e6 + 1, end,"A", sep = "_")] %>% 
+  .[, loci := paste(paste0(chr, "A"), end - 0.5e6 + 1, end, sep = "_")] %>% 
   .[, row_num := .I] %>% # add row numbers
   .[, remove_row_num := .I[.N], by=.(cell_id, chr)]# find last row in each cell_id - chr group
 
 cn_jitterB <- jitter_fix_breakpoints(hscnnew %>% dplyr::rename(state = Min), 
                                      nextend = snakemake@config$window) %>%
   as.data.table() %>% 
-  .[, loci := paste(chr, end - 0.5e6 + 1, end, "B", sep = "_")] %>% 
+  .[, loci := paste(paste0(chr, "B"), end - 0.5e6 + 1, end, sep = "_")] %>% 
   .[, row_num := .I] %>% # add row numbers
   .[, remove_row_num := .I[.N], by=.(cell_id, chr)]# find last row in each cell_id - chr group
 
@@ -44,7 +44,7 @@ fwrite(cn_transitions, file = snakemake@output[["sitka_transitions"]])
 
 cn_transitions <- cn_transitions %>%
   .[, tipInclusionProbabilities := 1] %>%
-  .[, loci := paste(chr, start, end, allele, sep = "_")] %>% 
+  .[, loci := paste(paste0(chr, allele), start, end, sep = "_")] %>% 
   select(cell_id, loci, tipInclusionProbabilities) %>%
   rename(cells = cell_id)
 cn_transitions2 <- cn_transitions

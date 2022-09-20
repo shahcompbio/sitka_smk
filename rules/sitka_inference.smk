@@ -170,3 +170,17 @@ rule plotsitka:
         mem_mb=1024 * 50
     singularity: "docker://marcjwilliams1/signals:v0.7.6"
     script: "../scripts/plotheatmap.R"
+
+rule summaryhtml:
+    input:
+        trees_filt = expand("results/output/{{sample}}-{inputtype}-tree-processed.newick", inputtype = intypes),
+        trees_unfilt = expand("results/output/{{sample}}-{inputtype}-tree.newick", inputtype = intypes),
+        hscn = _get_hscnpath,
+    output:
+        "results/output/{sample}-summary.html"
+    threads: 5
+    resources:
+        mem_mb=1024 * 10
+    singularity: "docker://marcjwilliams1/signals:v0.7.6"
+    script: "../scripts/summary.Rmd"
+
