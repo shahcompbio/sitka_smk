@@ -263,12 +263,16 @@ get_cells_to_remove <- function(et, tree, ratio = NULL, frac_cells = 0.03){
   }
   
   if (frac_cells == 0.0){
-    return(NULL)
+    return(c())
   }
+           
+  total_cells <- sum(et$is_cell)
+  n_remove_cells <- round(frac_cells * total_cells)
+  if (n_remove_cells < 1){
+    return(c())
+  }        
   
   if (is.null(ratio)){
-    total_cells <- sum(et$is_cell)
-    n_remove_cells <- round(frac_cells * total_cells)
     vals <- rev(sort(et$descendents_to_singletons))
     i <- 1
     ni <- 0
