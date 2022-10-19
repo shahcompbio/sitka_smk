@@ -171,15 +171,15 @@ rule plotsitka:
     singularity: "docker://marcjwilliams1/signals:v0.7.6"
     script: "../scripts/plotheatmap.R"
 
-rule summaryhtml:
+rule plotheatmaps:
     input:
         trees_filt = expand("results/output/{{sample}}-{inputtype}-tree-processed.newick", inputtype = intypes),
         trees_unfilt = expand("results/output/{{sample}}-{inputtype}-tree.newick", inputtype = intypes),
         hscn = _get_hscnpath,
     output:
-        "results/output/{sample}-summary.html"
-    threads: 4
-    resources: mem_mb=1024 * 20
+        pdf = "results/output/{sample}-heatmaps.pdf"
+    threads: 2
+    resources: mem_mb=1024 * 25
     singularity: "docker://marcjwilliams1/signals:v0.7.6"
-    script: "../scripts/summary_old.Rmd"
+    script: "../scripts/plotallheatmaps.R"
 

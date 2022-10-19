@@ -2,7 +2,7 @@ __default__:
   - "-W 4:0"
 
 sitka_tree_inference:
-  - "-W 72:00"
+  - "-W 144:00"
 
 sitka_tree_consensus:
   - "-W 24:00"
