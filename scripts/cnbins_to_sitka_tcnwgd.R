@@ -13,6 +13,12 @@ message("Filter data")
 hscn <- subset(hscn, select = c(chr, start, end, cell_id, state))
 hscnnew <- hscn[chr != "Y"]
 
+message("Cell ploidies")
+ploidy <- as.data.table(hscnnew)[, list(ploidy = signals:::Mode(state)), by = "cell_id"]
+ploidy_table <- table(ploidy$ploidy)
+majority_ploidy_cells <- ploidy[ploidy == as.numeric(names(which.max(ploidy_table)))] %>% pull(cell_id)
+other_cells <- ploidy[ploidy != as.numeric(names(which.max(ploidy_table)))] %>% pull(cell_id)
+
 message("Create segments")
 options("scipen"=20)
 
@@ -88,5 +94,10 @@ message(paste0("Number of cells (original): ", ncells_original))
 #   mutate(x2 = loci %in% tr$node.label) %>% 
 #   ggplot(aes(x = x, fill = x2)) + geom_histogram()
 
-message("Write file")
-fwrite(sitka_df, file = snakemake@output[["sitka_input"]])
+message("Write files")
+sitka_df_majority_ploidy <- sitka_df[cells %in% majority_ploidy_cells]
+fwrite(sitka_df_majority_ploidy, file = snakemake@output[["sitka_input_modeploidy"]])
+
+sitka_df_other_ploidy <- sitka_df[!cells %in% majority_ploidy_cells]
+fwrite(sitka_df_other_ploidy, file = snakemake@output[["sitka_input_other"]])
+

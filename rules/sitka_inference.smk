@@ -178,9 +178,8 @@ rule summaryhtml:
         hscn = _get_hscnpath,
     output:
         "results/output/{sample}-summary.html"
-    threads: 5
-    resources:
-        mem_mb=1024 * 10
+    threads: 4
+    resources: mem_mb=1024 * 20
     singularity: "docker://marcjwilliams1/signals:v0.7.6"
-    script: "../scripts/summary.Rmd"
+    script: "../scripts/summary_old.Rmd"
 
