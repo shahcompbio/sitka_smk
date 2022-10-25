@@ -3,28 +3,56 @@ def _get_hscnpath(wildcards):
     path = df_filt["path"].to_list()[0]
     return path
 
-rule hmmcopy_to_sitka_tree:
+rule hmmcopy_to_sitka_tree_tcn:
     input:
         hscn = _get_hscnpath,
     output:
-        sitka_input = "results/input/{sample}_sitka.csv",
-        sitka_segs = "results/input/{sample}_sitka_segs.csv.gz",
-        sitka_transitions = "results/input/{sample}_sitka_transitions.csv.gz",
+        sitka_input = "results/input/{sample}-tcn_sitka.csv",
+        sitka_segs = "results/input/{sample}-tcn_sitka_segs.csv.gz",
+        sitka_transitions = "results/input/{sample}-tcn_sitka_transitions.csv.gz",
     singularity: "docker://marcjwilliams1/signals:v0.7.6"
     threads: 15
     resources:
         mem_mb=1024*10
     script:
-        "../scripts/cnbins_to_sitka.R"
+        "../scripts/cnbins_to_sitka_tcn.R"
+    
+rule hmmcopy_to_sitka_tree_ascn:
+    input:
+        hscn = _get_hscnpath,
+    output:
+        sitka_input = "results/input/{sample}-ascn_sitka.csv",
+        sitka_segs = "results/input/{sample}-ascn_sitka_segs.csv.gz",
+        sitka_transitions = "results/input/{sample}-ascn_sitka_transitions.csv.gz",
+    singularity: "docker://marcjwilliams1/signals:v0.7.6"
+    threads: 15
+    resources:
+        mem_mb=1024*10
+    script:
+        "../scripts/cnbins_to_sitka_ascn.R"
+
+rule hmmcopy_to_sitka_tree_tcnchrom:
+    input:
+        hscn = _get_hscnpath,
+    output:
+        sitka_input = "results/input/{sample}-tcnchrom_sitka.csv",
+        sitka_segs = "results/input/{sample}-tcnchrom_sitka_segs.csv.gz",
+        sitka_transitions = "results/input/{sample}-tcnchrom_sitka_transitions.csv.gz",
+    singularity: "docker://marcjwilliams1/signals:v0.7.6"
+    threads: 15
+    resources:
+        mem_mb=1024*10
+    script:
+        "../scripts/cnbins_to_sitka_tcnchrom.R"
 
 rule sitka_tree_inference:
     input:
-        "results/input/{sample}_sitka.csv",
+        "results/input/{sample}-{inputtype}_sitka.csv",
     output:
-        posterior='results/output/{sample}-phylo.csv',
-        fnr='results/output/{sample}-fnr.csv',
-        fpr='results/output/{sample}-fpr.csv',
-        logdensity='results/output/{sample}-sitka_tree_output/logDensity.csv'
+        posterior='results/output/{sample}-{inputtype}-phylo.csv',
+        fnr='results/output/{sample}-{inputtype}-fnr.csv',
+        fpr='results/output/{sample}-{inputtype}-fpr.csv',
+        logdensity='results/output/{sample}-{inputtype}-sitka_tree_output/logDensity.csv'
     threads: 25
     resources:
         mem_mb=1024*2
@@ -61,9 +89,9 @@ rule sitka_tree_inference:
 
 rule sitka_tree_consensus:
     input:
-        'results/output/{sample}-phylo.csv',
+        'results/output/{sample}-{inputtype}-phylo.csv',
     output:
-        'results/output/{sample}-consensus.newick'
+        'results/output/{sample}-{inputtype}-consensus.newick'
     shadow: 'shallow'
     singularity: 'shub://funnell/nowellpack_singularity'
     resources:
@@ -81,9 +109,9 @@ rule sitka_tree_consensus:
 
 rule sitka_tree_average_tip_indicators:
     input:
-        'results/output/{sample}-phylo.csv'
+        'results/output/{sample}-{inputtype}-phylo.csv'
     output:
-        'results/output/{sample}-average.csv'
+        'results/output/{sample}-{inputtype}-average.csv'
     shadow: 'shallow'
     singularity: 'shub://funnell/nowellpack_singularity'
     resources:
@@ -102,9 +130,9 @@ rule sitka_tree_average_tip_indicators:
 
 rule sitka_tree_decode:
     input:
-        'results/output/{sample}-average.csv'
+        'results/output/{sample}-{inputtype}-average.csv'
     output:
-        'results/output/{sample}-tree.newick'
+        'results/output/{sample}-{inputtype}-tree.newick'
     shadow: 'shallow'
     singularity: 'shub://funnell/nowellpack_singularity'
     resources:
@@ -122,9 +150,9 @@ rule sitka_tree_decode:
 
 rule formatsitka:
     input:
-        tree = 'results/output/{sample}-tree.newick',
+        tree = 'results/output/{sample}-{inputtype}-tree.newick',
     output:
-        tree = 'results/output/{sample}-tree-processed.newick'
+        tree = 'results/output/{sample}-{inputtype}-tree-processed.newick'
     threads: 1
     resources:
         mem_mb=1024 * 10
@@ -133,12 +161,25 @@ rule formatsitka:
 
 rule plotsitka:
     input:
-        tree = 'results/output/{sample}-tree-processed.newick',
+        tree = 'results/output/{sample}-{inputtype}-tree-processed.newick',
         hscn = _get_hscnpath
     output:
-        plotpng = "results/output/{sample}-heatmap.png"
+        plotpng = "results/output/{sample}-{inputtype}-heatmap.png"
     threads: 1
     resources:
         mem_mb=1024 * 50
     singularity: "docker://marcjwilliams1/signals:v0.7.6"
     script: "../scripts/plotheatmap.R"
+
+rule plotheatmaps:
+    input:
+        trees_filt = expand("results/output/{{sample}}-{inputtype}-tree-processed.newick", inputtype = intypes),
+        trees_unfilt = expand("results/output/{{sample}}-{inputtype}-tree.newick", inputtype = intypes),
+        hscn = _get_hscnpath,
+    output:
+        pdf = "results/output/{sample}-heatmaps.pdf"
+    threads: 2
+    resources: mem_mb=1024 * 25
+    singularity: "docker://marcjwilliams1/signals:v0.7.6"
+    script: "../scripts/plotallheatmaps.R"
+

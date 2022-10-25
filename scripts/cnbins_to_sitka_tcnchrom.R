@@ -65,5 +65,22 @@ sitka_df <- merge(dt, cn_transitions, all = T) %>%
 message(paste0("Number of cells: ", length(unique(sitka_df$cells))))
 message(paste0("Number of cells (original): ", ncells_original))  
 
+message("Add markers for each chromosome")
+ploidy <- hscnnew[, list(ploidy = signals:::Mode(state)), by = "cell_id"]
+hscn_chr <- hscnnew %>% 
+  group_by(cell_id, chr) %>% 
+  summarise(start = last(start), end = last(end), state = last(state)) %>% 
+  ungroup() %>% 
+  left_join(ploidy, by = "cell_id") %>% 
+  mutate(gain = ifelse(state > ploidy, 1, 0), loss = ifelse(state < ploidy, 1, 0)) %>% 
+  pivot_longer(c(gain, loss))
+
+chr_loci <- hscn_chr %>% 
+  mutate(loci = paste(paste0(chr, name), end - 0.5e6 + 1, end, sep = "_")) %>% 
+  rename(tipInclusionProbabilities = value, cells = cell_id) %>% 
+  select(cells, loci, tipInclusionProbabilities)
+
+sitka_df <- bind_rows(sitka_df, chr_loci)
+
 message("Write file")
 fwrite(sitka_df, file = snakemake@output[["sitka_input"]])
