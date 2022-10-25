@@ -3,6 +3,7 @@ import numpy as np
 configfile: "config.yaml"
 df = pd.read_csv(config["samplesheet"])
 intypes = ["tcn", "ascn",  "tcnchrom", "tcnploidygrow"]
+PATIENTS = df["patient"]
 
 rule all:
     input: 
